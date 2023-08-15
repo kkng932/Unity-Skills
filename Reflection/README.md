@@ -36,9 +36,6 @@ public class MyMenu
 
         var musicList = ReadFromTsv<MusicList>();
         AssetDatabase.CreateAsset(musicList, "Assets/Resources/Data/Table/MusicList.asset");
-
-
-
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
 
@@ -53,32 +50,31 @@ public class MyMenu
         {
             var fiType = fi.FieldType;
             // 제네릭 타입 , 리스트형인지 확인 
+            // 테이블의 여러 행을 받기 위해 기존 데이터에서 List를 사용 
             if (fiType.IsGenericType && fiType.GetGenericTypeDefinition() == typeof(List<>))
             {
                 // GameData 필드의 이름 
                 string fiName = fi.Name;
                 Debug.Log(fiName + " tsv 파일 읽는 중 ... ");
                 string[] lines = File.ReadAllLines("Assets/Tsvs/TBabySeeOtter - " + fiName + ".tsv");
-
-
+                
                 // 데이터를 담을 리스트 인스턴스 
                 var dataList = Activator.CreateInstance(fiType) as IList;
 
                 // 어떤 타입 리스트인지 저장 
                 var currType = fiType.GetGenericArguments()[0];
 
-                // 속성 값 읽어옴 (두번째 줄부터 )
-
+                // 속성 값 
+                // 제공받은 테이블은 첫 행은 한글 이름, 두번 째 행은 영어 이름을 사용하여 두번 째 행을 활용하였다. 
                 List<string> columns = lines[1].Split('\t').ToList();
 
-
+                // 속성 값 읽어옴 (두번째 줄부터)
                 for (int i = 2; i < lines.Length; i++)
                 {
                     var currentRow = lines[i];
 
                     if (lines[i].StartsWith("//"))
                     {
-                        //Debug.Log("주석 들어간 값 : "+lines[i]);
                         continue;
                     }
                     object temp = GetInstance(currType, columns, currentRow);
@@ -100,9 +96,10 @@ public class MyMenu
 
         for (int i = 0; i < columns.Count; i++)
         {
+            // 현재 내용 
             var cell = cells[i];
+            // 현재 속성 이름 
             var fieldName = columns[i];
-            //Debug.Log("속성 이름 : " + fieldName+", 넣을 값 : "+ cell.ToString());
 
             var fieldInfo = currType.GetField(fieldName);
             if (fieldInfo == null)
@@ -116,6 +113,7 @@ public class MyMenu
 
         return temp;
     }
+    // 자주 쓰이는 타입으로 분류 
     private static void SetValue(object temp, string column, System.Reflection.FieldInfo fieldInfo, Type ft)
     {
         if (ft == typeof(int))
@@ -149,4 +147,5 @@ public class MyMenu
         }
     }
 }
+
 ```
