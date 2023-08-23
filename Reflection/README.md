@@ -1,9 +1,11 @@
 # Reflection 
 런타임 중에 메타 정보를 알아내는 기능  
-성능 상의 문제로 주로 게임 시작 전에 엑셀, tsv 파일 등의 데이터를 Scriptable Object에 저장하는 방식으로 많이 사용하였다.  
+성능 상의 문제로 게임 중에는 지양하였고 주로 게임 시작 전에 엑셀, tsv 파일 등의 데이터를 Scriptable Object에 저장하는 용도로 많이 사용하였다.  
 
 제네릭과 같이 활용해서 코드를 재활용하는 것에 집중하였다.  
-ScriptableObject를 상속하고 멤버변수, 클래스의 이름을 테이블과 같이 하면 tsv(엑셀)의 개별의 파싱 클래스를 만들지 않아도 자동으로 분류가 되는 로직이다.  
+ScriptableObject를 상속하고 멤버변수, 클래스의 이름을 테이블과 같이 하면 자동으로 분류가 되는 로직이다.  
+
+
 
 ```C#
 using System;
@@ -19,27 +21,12 @@ public class MyMenu
     [MenuItem("MyMenu/TsvToAsset")]
     public static void TsvToAsset()
     {
-        var noteData = ReadFromTsv<Note>();
-        for(int i=0;i<noteData.TNote.Count;i++)
-        {
-            noteData.TNote[i].beats = new int[16];
-            for(int j=0;j<noteData.TNote[i].beats.Length;j++)
-            {
-                Debug.Log("j : " + j);
-                var currNote = noteData.TNote[i];
-                var fieldInfo = currNote.GetType().GetField("beat" + (j + 1).ToString());
-                noteData.TNote[i].beats[j] = (int)fieldInfo.GetValue(currNote);
-                Debug.Log(fieldInfo.GetValue(currNote));
-            }
-        }
-        AssetDatabase.CreateAsset(noteData, "Assets/Resources/Data/Table/Note.asset");
-
-        var musicList = ReadFromTsv<MusicList>();
-        AssetDatabase.CreateAsset(musicList, "Assets/Resources/Data/Table/MusicList.asset");
+        var tempData = ReadFromTsv<TempDataClass>();
+        AssetDatabase.CreateAsset(tempData, "Assets/Resources/Data/Table/MusicList.asset");
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
-
     }
+    // Tsv 파일을 읽어 속성값에 따라 제네릭 타입을 분류, 데이터 저장 
     public static T ReadFromTsv<T>()
     {
         var result = Activator.CreateInstance<T>();
@@ -50,15 +37,12 @@ public class MyMenu
         {
             var fiType = fi.FieldType;
             // 제네릭 타입 , 리스트형인지 확인 
-            // 테이블의 여러 행을 받기 위해 기존 데이터에서 List를 사용 
             if (fiType.IsGenericType && fiType.GetGenericTypeDefinition() == typeof(List<>))
             {
-                // GameData 필드의 이름 
                 string fiName = fi.Name;
                 Debug.Log(fiName + " tsv 파일 읽는 중 ... ");
-                string[] lines = File.ReadAllLines("Assets/Tsvs/TBabySeeOtter - " + fiName + ".tsv");
+                string[] lines = File.ReadAllLines("경로" + fiName + ".tsv");
                 
-                // 데이터를 담을 리스트 인스턴스 
                 var dataList = Activator.CreateInstance(fiType) as IList;
 
                 // 어떤 타입 리스트인지 저장 
@@ -68,29 +52,26 @@ public class MyMenu
                 // 제공받은 테이블은 첫 행은 한글 이름, 두번 째 행은 영어 이름을 사용하여 두번 째 행을 활용하였다. 
                 List<string> columns = lines[1].Split('\t').ToList();
 
-                // 속성 값 읽어옴 (두번째 줄부터)
+                // 속성 값 읽어옴 (세번째 줄부터)
                 for (int i = 2; i < lines.Length; i++)
                 {
                     var currentRow = lines[i];
-
+                    // 데이터 파일에서도 주석처리가 가능하도록 만들었다.  
                     if (lines[i].StartsWith("//"))
                     {
                         continue;
                     }
                     object temp = GetInstance(currType, columns, currentRow);
-
                     dataList.Add(temp);
-
                 }
                 fi.SetValue(result, dataList);
             }
         }
-
         return result;
     }
+    // 한 행의 정보를 받아 데이터 저장 
     private static object GetInstance(Type currType, List<string> columns, string currentRow)
     {
-        // 각 행마다 저장시킬 인스턴스 생성 
         var temp = Activator.CreateInstance(currType);
         string[] cells = currentRow.Split('\t');
 
@@ -108,12 +89,11 @@ public class MyMenu
             }
             var ft = fieldInfo.FieldType;
             SetValue(temp, cell, fieldInfo, ft);
-
         }
 
         return temp;
     }
-    // 자주 쓰이는 타입으로 분류 
+    // 타입 정보로 분류 
     private static void SetValue(object temp, string column, System.Reflection.FieldInfo fieldInfo, Type ft)
     {
         if (ft == typeof(int))
@@ -149,3 +129,27 @@ public class MyMenu
 }
 
 ```
+
+아래는 데이터를 저장할 ScriptableObject 클래스입니다. 
+
+```C#
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class TempDataClass : ScriptableObject
+{
+    public List<TTempDataClass> TTempDataClass = new List<TTempDataClass>();
+}
+
+[Serializable]
+public class TTempDataClass
+{
+    public string tempStr;
+    public int tempInt;
+}
+```
+
+참고를 위한 임시 코드    
+데이터 누락에 대비하기 위한 임시 데이터를 포함한 내용이므로 사용 시에 데이터, 구조에 맞게 설정 변경이 필요하다.  
