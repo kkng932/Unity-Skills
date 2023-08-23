@@ -130,7 +130,7 @@ public class MyMenu
 
 ```
 
-아래는 데이터를 저장할 ScriptableObject 클래스입니다. 
+데이터를 저장할 ScriptableObject 클래스 예시 
 
 ```C#
 using System;
