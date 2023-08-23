@@ -150,6 +150,8 @@ public class TTempDataClass
     public int tempInt;
 }
 ```
+이름으로 데이터를 읽어 구분하므로 멤버변수의 이름을 맞춰줘야 한다.  
+![image](https://github.com/kkng932/Unity-Skills/assets/88977637/1571537c-9dfe-481f-b19a-b1afe1a6e360)
 
 참고를 위한 임시 코드    
 데이터 누락에 대비하기 위한 임시 데이터를 포함한 내용이므로 사용 시에 데이터, 구조에 맞게 설정 변경이 필요하다.  
