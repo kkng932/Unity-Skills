@@ -6,10 +6,10 @@
 4. [UI 터치 감지](https://github.com/kkng932/Unity-Skills/tree/main/TouchDetection)
 
 
-
+<!--
 ## 게임 디자인 패턴 
 1. [싱글톤](https://github.com/kkng932/Unity-Skills/tree/main/GameDesignPatterns/Singleton)
-
+-->
 
 
 #### 공부용 링크
