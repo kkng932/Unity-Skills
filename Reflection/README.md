@@ -22,7 +22,7 @@ public class MyMenu
     public static void TsvToAsset()
     {
         var tempData = ReadFromTsv<TempDataClass>();
-        AssetDatabase.CreateAsset(tempData, "Assets/Resources/Data/Table/MusicList.asset");
+        AssetDatabase.CreateAsset(tempData, "Assets/Resources/Data/Table/Data.asset");
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
     }
@@ -49,7 +49,6 @@ public class MyMenu
                 var currType = fiType.GetGenericArguments()[0];
 
                 // 속성 값 
-                // 제공받은 테이블은 첫 행은 한글 이름, 두번 째 행은 영어 이름을 사용하여 두번 째 행을 활용하였다. 
                 List<string> columns = lines[1].Split('\t').ToList();
 
                 // 속성 값 읽어옴 (세번째 줄부터)
